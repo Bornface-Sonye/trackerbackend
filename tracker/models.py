@@ -126,15 +126,34 @@ class Result(models.Model):
     def __str__(self):
         return f'Result for {self.registration.student.username} in {self.registration.course.course_name}'
 
-
 class Complaint(models.Model):
+    # Existing fields
     id = models.AutoField(primary_key=True)
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='complaints')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='complaints')
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     complaint_time = models.DateTimeField(auto_now_add=True)
-    is_resolved = models.BooleanField(default=False)
     
+    # Status Choices
+    PENDING = 'Pending'
+    IN_PROGRESS = 'In Progress'
+    RESOLVED = 'Resolved'
+    STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (IN_PROGRESS, 'In Progress'),
+        (RESOLVED, 'Resolved'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+    )
+    
+    # New Fields
+    description = models.TextField(null=True, blank=True)
+    lecturer_comment = models.TextField(null=True, blank=True)
+    cod_comment = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return f'Complaint by {self.student.username} for {self.course.course_name}'
 

@@ -125,3 +125,34 @@ class ComplaintView(View):
             # If the user does not exist
             return JsonResponse({'error': 'User not found'}, status=404)
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views import View
+from .models import Registration, Result
+
+@method_decorator(csrf_exempt, name='dispatch')
+class IncompleteGradeCountView(View):
+    def get(self, request):
+        # Extract registration_number from the request GET parameters
+        registration_number = request.GET.get('registration_number')
+        
+        if not registration_number:
+            return JsonResponse({"error": "Registration number is required"}, status=400)
+        
+        # Find the User object by the registration_number (or username)
+        try:
+            user = User.objects.get(username=registration_number)  # Assuming registration_number is the username
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+        
+        # Find the Registration object using the User
+        try:
+            registration = Registration.objects.get(student=user)
+        except Registration.DoesNotExist:
+            return JsonResponse({"error": "Registration not found"}, status=404)
+
+        # Get the count of incomplete results for this registration
+        incomplete_count = Result.objects.filter(registration=registration, grade_status='incomplete').count()
+
+        # Return the count as a JSON response
+        return JsonResponse({"incomplete_grade_count": incomplete_count})
